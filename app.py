@@ -333,7 +333,10 @@ if st.session_state.get("ticket_approved", False):
         "Status: Escalated to Human IT Support."
     )
 
-
+if st.session_state.get("ticket_approved", False) and st.session_state.get("demo_ticket"):
+    with st.expander("View structured demo ticket"):
+        st.json(st.session_state.demo_ticket)
+        
 # --------------------------------------------------
 # 8. FOOTER
 # --------------------------------------------------
