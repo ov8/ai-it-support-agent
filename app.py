@@ -65,7 +65,7 @@ MODEL = "gemini-3.1-flash-lite"
 
 KNOWLEDGE_BASE = """
 You are supporting a fictional organization called
-Northstar Services.
+Seven Signals Health.
 
 Approved troubleshooting guidance:
 
