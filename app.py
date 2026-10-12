@@ -293,9 +293,6 @@ if st.session_state.get("ticket_summary"):
             st.session_state.ticket_pending = False
             st.rerun()
 
-elif st.session_state.get("ticket_pending", False):
-    st.error("No ticket was generated. Please try preparing the ticket again.")
-
 if st.session_state.get("ticket_approved", False):
     st.success(
         "Demo support ticket approved. "
