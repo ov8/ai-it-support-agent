@@ -226,6 +226,12 @@ if st.session_state.get("ticket_pending", False):
         "Please review and approve this simulated escalation."
     )
 
+    st.markdown("**Issue summary for human review:**")
+
+    for message in st.session_state.messages:
+        if message["role"] == "user":
+            st.write(message["content"])
+
     if st.button("Approve simulated ticket"):
         st.success(
             "Demo support ticket approved. "
