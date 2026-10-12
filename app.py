@@ -1,87 +1,232 @@
+import hmac
+
 import streamlit as st
+from google import genai
 
 st.set_page_config(
     page_title="AI IT Support Agent",
     page_icon="🛠️",
-    layout="centered"
+    layout="centered",
 )
 
 st.title("🛠️ AI IT Support Agent")
-st.caption("Agentic AI Workflow Portfolio | Prototype V1")
+st.caption("Conversational AI Portfolio | Prototype V2")
 
 st.info(
-    "This demonstration uses fictional IT support scenarios. "
-    "No real employee or client information is collected."
+    "This is a fictional IT support demonstration. "
+    "Do not enter real passwords, patient data, "
+    "personal information, or confidential work information."
 )
 
-st.subheader("How can I help you today?")
+# --------------------------------------------------
+# 1. PRIVATE DEMO ACCESS
+# --------------------------------------------------
 
-issue = st.selectbox(
-    "Select your IT support issue:",
-    [
-        "Choose an issue",
-        "I cannot log into my account",
-        "I cannot access SharePoint",
-        "I need a software licence"
-    ]
+def check_password():
+    if st.session_state.get("authenticated", False):
+        return True
+
+    entered_password = st.text_input(
+        "Enter demo access password:",
+        type="password",
+    )
+
+    if st.button("Unlock demo"):
+        if hmac.compare_digest(
+            entered_password,
+            st.secrets["DEMO_PASSWORD"],
+        ):
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("Incorrect password.")
+
+    return False
+
+
+if not check_password():
+    st.stop()
+
+
+# --------------------------------------------------
+# 2. GEMINI CLIENT
+# --------------------------------------------------
+
+client = genai.Client(
+    api_key=st.secrets["GEMINI_API_KEY"]
 )
 
-knowledge_base = {
-    "I cannot log into my account": (
-        "1. Confirm your username is correct.\n\n"
-        "2. Check whether your password has expired.\n\n"
-        "3. Try signing in through your organization's approved login page.\n\n"
-        "4. If you are still unable to log in, contact IT support."
-    ),
-    "I cannot access SharePoint": (
-        "1. Confirm you are signed into the correct account.\n\n"
-        "2. Check whether you have been granted access to the site.\n\n"
-        "3. Ask the site owner to verify your permissions.\n\n"
-        "4. If access is still denied, contact IT support."
-    ),
-    "I need a software licence": (
-        "1. Identify the software you need.\n\n"
-        "2. Check whether your organization already provides it.\n\n"
-        "3. Obtain any required manager approval.\n\n"
-        "4. Submit a software access request to IT."
+MODEL = "gemini-2.5-flash"
+
+
+# --------------------------------------------------
+# 3. FICTIONAL IT KNOWLEDGE BASE
+# --------------------------------------------------
+
+KNOWLEDGE_BASE = """
+You are supporting a fictional organization called
+Northstar Services.
+
+Approved troubleshooting guidance:
+
+ISSUE: ACCOUNT LOGIN
+- Confirm the employee is using the correct username.
+- Check whether the password has expired.
+- Direct the employee to the approved password reset process.
+- Never request passwords or MFA codes.
+- Escalate account lockouts or unresolved authentication failures.
+
+ISSUE: SHAREPOINT ACCESS
+- Confirm the employee is using the correct organizational account.
+- Determine whether the problem affects one folder or the entire site.
+- Check whether the employee has requested access from the site owner.
+- Do not claim to grant permissions.
+- Escalate unresolved access problems.
+
+ISSUE: SOFTWARE LICENSING
+- Ask which software is required.
+- Determine whether the employee already has an approved licence.
+- Explain that manager approval may be required.
+- Do not claim to purchase or provision software.
+- Escalate licensing requests to the appropriate IT team.
+"""
+
+
+# --------------------------------------------------
+# 4. SYSTEM INSTRUCTIONS
+# --------------------------------------------------
+
+SYSTEM_INSTRUCTIONS = f"""
+You are a professional, helpful IT support assistant
+for Northstar Services, a fictional organization.
+
+Your responsibilities:
+1. Understand the employee's IT problem.
+2. Identify the likely issue category.
+3. Ask relevant clarifying questions.
+4. Provide troubleshooting instructions using
+   the approved knowledge base.
+5. Determine whether the issue is resolved.
+6. If unresolved, offer human IT support escalation.
+
+Rules:
+- Use only the approved knowledge base for technical guidance.
+- Do not invent organizational policies or procedures.
+- Never ask for passwords, MFA codes, or sensitive information.
+- Do not claim to access real systems or employee records.
+- Do not claim to create real support tickets.
+- Ask one or two questions at a time.
+- Keep responses concise and understandable.
+- If information is missing, ask for clarification.
+- If you cannot resolve an issue, recommend escalation.
+
+APPROVED KNOWLEDGE BASE:
+{KNOWLEDGE_BASE}
+"""
+
+
+# --------------------------------------------------
+# 5. CONVERSATION HISTORY
+# --------------------------------------------------
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+
+# --------------------------------------------------
+# 6. CONVERSATIONAL AI
+# --------------------------------------------------
+
+user_input = st.chat_input(
+    "Describe your IT support issue..."
+)
+
+if user_input:
+    st.session_state.messages.append(
+        {"role": "user", "content": user_input}
     )
-}
 
-if issue != "Choose an issue":
+    with st.chat_message("user"):
+        st.markdown(user_input)
 
-    st.subheader("Recommended troubleshooting steps")
+    with st.chat_message("assistant"):
+        try:
+            conversation = [
+                {
+                    "role": message["role"],
+                    "parts": [
+                        {"text": message["content"]}
+                    ],
+                }
+                for message in st.session_state.messages
+            ]
 
-    st.write(knowledge_base[issue])
+            response = client.models.generate_content(
+                model=MODEL,
+                contents=conversation,
+                config={
+                    "system_instruction": SYSTEM_INSTRUCTIONS,
+                    "temperature": 0.3,
+                },
+            )
 
-    st.divider()
+            answer = response.text or (
+                "I couldn't generate a response. "
+                "Please try again."
+            )
 
-    resolved = st.radio(
-        "Did these steps resolve your issue?",
-        ["Select an answer", "Yes", "No"]
-    )
+            st.markdown(answer)
 
-    if resolved == "Yes":
-        st.success("Great! Your support request is resolved.")
+            st.session_state.messages.append(
+                {"role": "assistant", "content": answer}
+            )
 
-    elif resolved == "No":
-        st.warning("This issue may require human IT support.")
+        except Exception:
+            st.error(
+                "The AI service is temporarily unavailable. "
+                "Please try again later."
+            )
 
-        description = st.text_area(
-            "Please describe what happened:"
-        )
 
-        if st.button("Create support ticket"):
-            if description.strip():
-                st.success("Demo support ticket created successfully!")
-                st.write("**Category:**", issue)
-                st.write("**Description:**", description)
-                st.write("**Status:** Escalated to IT Support")
-            else:
-                st.error("Please provide a description before creating a ticket.")
+# --------------------------------------------------
+# 7. DEMO ESCALATION
+# --------------------------------------------------
 
 st.divider()
+st.subheader("Human IT Support Escalation")
 
 st.caption(
-    "Portfolio demonstration | Streamlit + Python | "
-    "Future integration: Microsoft Copilot Studio and Power Automate"
+    "This creates a simulated ticket only. "
+    "No real IT support system is connected."
+)
+
+if st.button("Prepare demo support ticket"):
+    st.session_state.ticket_pending = True
+
+if st.session_state.get("ticket_pending", False):
+    st.warning(
+        "Please review and approve this simulated escalation."
+    )
+
+    if st.button("Approve simulated ticket"):
+        st.success(
+            "Demo support ticket approved. "
+            "Status: Escalated to Human IT Support."
+        )
+        st.session_state.ticket_pending = False
+
+
+# --------------------------------------------------
+# 8. FOOTER
+# --------------------------------------------------
+
+st.divider()
+st.caption(
+    "Prototype V2 | Streamlit + Gemini | "
+    "Next: Agentic workflows, tool calling, "
+    "intelligent routing and automated ticket creation."
 )
