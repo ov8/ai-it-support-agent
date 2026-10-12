@@ -183,8 +183,14 @@ if user_input:
                 "I couldn't generate a response. "
                 "Please try again."
             )
+if "[ESCALATION_RECOMMENDED]" in answer:
+    st.session_state.ticket_pending = True
 
-            st.markdown(answer)
+    answer = answer.replace(
+        "[ESCALATION_RECOMMENDED]", ""
+    ).strip()
+
+st.markdown(answer)
 
             st.session_state.messages.append(
                 {"role": "assistant", "content": answer}
