@@ -278,8 +278,7 @@ if st.button("Prepare demo support ticket"):
                     "Unable to generate the support ticket. "
                     "Please try again."
                 )
-
-if st.session_state.get("ticket_pending", False):
+if st.session_state.get("ticket_pending", False) and st.session_state.get("ticket_summary"):
     st.warning(
         "Please review and approve this simulated escalation."
     )
