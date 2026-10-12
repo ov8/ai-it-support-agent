@@ -284,8 +284,11 @@ if st.session_state.get("ticket_pending", False):
         "Please review and approve this simulated escalation."
     )
 
+if st.session_state.get("ticket_summary"):
     st.markdown("### AI-Generated Support Ticket")
     st.markdown(st.session_state.ticket_summary)
+else:
+    st.error("No ticket was generated. Please try preparing the ticket again.")
 
     if st.button("Approve simulated ticket"):
         st.session_state.ticket_approved = True
