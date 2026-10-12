@@ -185,10 +185,15 @@ if user_input:
                 {"role": "assistant", "content": answer}
             )
 
-        except Exception:
+        except Exception as error:
+            import logging
+            logging.exception("Gemini API request failed")
+
             st.error(
                 "The AI service is temporarily unavailable. "
                 "Please try again later."
+            )
+            
             )
 
 
