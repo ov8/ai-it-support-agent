@@ -344,3 +344,13 @@ st.caption(
     "Next: Agentic workflows, tool calling, "
     "intelligent routing and automated ticket creation."
 )
+
+st.divider()
+
+st.caption(
+    "Portfolio demonstration only. Seven Signals Health is a fictional "
+    "organization inspired by experience supporting IT service transformation "
+    "across seven BC health authorities. This application is not affiliated "
+    "with NTT DATA or any BC health authority. This demonstration uses "
+    "fictional scenarios and does not contain real patient or organizational data."
+)
