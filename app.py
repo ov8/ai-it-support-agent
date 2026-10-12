@@ -313,9 +313,19 @@ if st.session_state.get("ticket_summary"):
 
     if st.session_state.get("ticket_pending", False):
         if st.button("Approve simulated ticket"):
-            st.session_state.ticket_approved = True
-            st.session_state.ticket_pending = False
-            st.rerun()
+
+    st.session_state.demo_ticket = create_demo_ticket(
+        category="IT Support",
+        summary=st.session_state.ticket_summary,
+        team="Human IT Support"
+    )
+
+    st.session_state.demo_ticket["status"] = "Approved - Simulated escalation"
+
+    st.session_state.ticket_approved = True
+    st.session_state.ticket_pending = False
+
+    st.rerun()
 
 if st.session_state.get("ticket_approved", False):
     st.success(
