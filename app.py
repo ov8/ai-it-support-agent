@@ -219,25 +219,83 @@ st.caption(
 )
 
 if st.button("Prepare demo support ticket"):
-    st.session_state.ticket_pending = True
+    if not st.session_state.messages:
+        st.warning("Please describe an IT issue in the chat first.")
+    else:
+        with st.spinner("Gemini is preparing your support ticket..."):
+            try:
+                transcript = "\n".join(
+                    f"{message['role']}: {message['content']}"
+                    for message in st.session_state.messages
+                )
+
+                ticket_prompt = f"""
+                Analyze this fictional IT support conversation.
+
+                Prepare a concise support ticket with these fields:
+
+                **Issue category:**
+                **Issue summary:**
+                **Troubleshooting completed:**
+                **Current status:**
+                **Recommended IT team:**
+                **Reason for escalation:**
+
+                Rules:
+                - Use only information supported by the conversation.
+                - Do not invent troubleshooting steps.
+                - If information is missing, write "Not provided".
+                - Choose an appropriate IT team based on the issue.
+                - Do not claim a real ticket has been created.
+                - Do not include passwords or sensitive information.
+
+                CONVERSATION:
+                {transcript}
+                """
+
+                ticket_response = client.models.generate_content(
+                    model=MODEL,
+                    contents=ticket_prompt,
+                    config={
+                        "temperature": 0.2,
+                    },
+                )
+
+                ticket_text = ticket_response.text
+
+                if not ticket_text:
+                    raise ValueError("Gemini returned an empty ticket.")
+
+                st.session_state.ticket_summary = ticket_text
+                st.session_state.ticket_pending = True
+                st.session_state.ticket_approved = False
+
+            except Exception:
+                import logging
+                logging.exception("Ticket generation failed")
+
+                st.error(
+                    "Unable to generate the support ticket. "
+                    "Please try again."
+                )
 
 if st.session_state.get("ticket_pending", False):
     st.warning(
         "Please review and approve this simulated escalation."
     )
 
-    st.markdown("**Issue summary for human review:**")
-
-    for message in st.session_state.messages:
-        if message["role"] == "user":
-            st.write(message["content"])
+    st.markdown("### AI-Generated Support Ticket")
+    st.markdown(st.session_state.ticket_summary)
 
     if st.button("Approve simulated ticket"):
-        st.success(
-            "Demo support ticket approved. "
-            "Status: Escalated to Human IT Support."
-        )
+        st.session_state.ticket_approved = True
         st.session_state.ticket_pending = False
+
+if st.session_state.get("ticket_approved", False):
+    st.success(
+        "Demo support ticket approved. "
+        "Status: Escalated to Human IT Support."
+    )
 
 
 # --------------------------------------------------
