@@ -210,6 +210,30 @@ if user_input:
 # 7. DEMO ESCALATION
 # --------------------------------------------------
 
+def create_demo_ticket(category, summary, team):
+
+    """
+
+    Create a structured demo ticket.
+
+    No external IT system is connected.
+
+    """
+
+    ticket = {
+
+        "category": category,
+
+        "summary": summary,
+
+        "assigned_team": team,
+
+        "status": "Pending human approval"
+
+    }
+
+    return ticket
+    
 st.divider()
 st.subheader("Human IT Support Escalation")
 
