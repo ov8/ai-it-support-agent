@@ -286,12 +286,15 @@ if st.session_state.get("ticket_pending", False) and st.session_state.get("ticke
 if st.session_state.get("ticket_summary"):
     st.markdown("### AI-Generated Support Ticket")
     st.markdown(st.session_state.ticket_summary)
-else:
-    st.error("No ticket was generated. Please try preparing the ticket again.")
 
-    if st.button("Approve simulated ticket"):
-        st.session_state.ticket_approved = True
-        st.session_state.ticket_pending = False
+    if st.session_state.get("ticket_pending", False):
+        if st.button("Approve simulated ticket"):
+            st.session_state.ticket_approved = True
+            st.session_state.ticket_pending = False
+            st.rerun()
+
+elif st.session_state.get("ticket_pending", False):
+    st.error("No ticket was generated. Please try preparing the ticket again.")
 
 if st.session_state.get("ticket_approved", False):
     st.success(
