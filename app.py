@@ -136,7 +136,15 @@ APPROVED KNOWLEDGE BASE:
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
-
+    
+if st.button("🔄 New conversation"):
+    st.session_state.messages = []
+    st.session_state.ticket_summary = None
+    st.session_state.ticket_pending = False
+    st.session_state.ticket_approved = False
+    st.session_state.demo_ticket = None
+    st.rerun()
+    
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
