@@ -98,7 +98,7 @@ ISSUE: SOFTWARE LICENSING
 
 SYSTEM_INSTRUCTIONS = f"""
 You are a professional, helpful IT support assistant
-for Northstar Services, a fictional organization.
+for Seven Signals Health, a fictional organization.
 
 Your responsibilities:
 1. Understand the employee's IT problem.
