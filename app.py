@@ -193,8 +193,6 @@ if user_input:
                 "The AI service is temporarily unavailable. "
                 "Please try again later."
             )
-            
-            )
 
 
 # --------------------------------------------------
